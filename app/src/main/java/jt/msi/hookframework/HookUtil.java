@@ -1,8 +1,7 @@
 package jt.msi.hookframework;
 
-import android.app.ActivityManager;
+import android.os.Build;
 import android.util.Log;
-import android.view.View;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
@@ -16,13 +15,23 @@ import java.lang.reflect.Proxy;
 public class HookUtil {
     public  void hookStartActivity() {
         //还原 gDefault 成员变量 反射 调用一次
+        Object defaultValue;
         try {
-            Class<?> activityManagerNativeCls = Class.forName("android.app.ActivityManagerNative");
-            Field gDefault = activityManagerNativeCls.getDeclaredField("gDefault");
-            gDefault.setAccessible(true);
+            if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+                Class<?> activityManagerCls = Class.forName("android.app.ActivityManager");
+                Field iActivityManagerSingleton=activityManagerCls.getDeclaredField("IActivityManagerSingleton");
+                iActivityManagerSingleton.setAccessible(true);
+                //因为是静态变量所以获取到的是默认值
+                defaultValue = iActivityManagerSingleton.get(null);
+            }else {
+                Class<?> activityManagerNativeCls = Class.forName("android.app.ActivityManagerNative");
+                Field gDefault = activityManagerNativeCls.getDeclaredField("gDefault");
+                gDefault.setAccessible(true);
 
-            //因为是静态变量所以获取到的是默认值
-            Object defaultValue = gDefault.get(null);
+                //因为是静态变量所以获取到的是默认值
+                 defaultValue = gDefault.get(null);
+            }
+
             //mInstance对象
             Class<?> singletonClass = Class.forName("android.util.Singleton");
             Field mInstance = singletonClass.getDeclaredField("mInstance");
