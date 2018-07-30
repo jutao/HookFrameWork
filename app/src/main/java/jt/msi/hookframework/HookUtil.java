@@ -1,6 +1,12 @@
 package jt.msi.hookframework;
 
 import android.app.ActivityManager;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 
@@ -65,9 +71,9 @@ public class HookUtil {
             Class<?> activityManagerIntercept = Class.forName("android.app.IActivityManager");
             StartActivty startActivtyMethod = new StartActivty(iActivityManager);
 
-            //            第二参数  是即将返回的对象 需要实现那些接口
+            //第二参数  是即将返回的对象 需要实现那些接口
             Object oldIactivityManager = Proxy.newProxyInstance(startActivtyMethod.getClass().getClassLoader(), new Class[]{activityManagerIntercept}, startActivtyMethod);
-            //            将系统的iActivityManager  替换成    自己通过动态代理实现的对象   oldIactivityManager对象  实现了 IActivityManager这个接口的所有方法
+            //将系统的iActivityManager  替换成    自己通过动态代理实现的对象   oldIactivityManager对象  实现了 IActivityManager这个接口的所有方法
             mInstance.set(defaultValue, oldIactivityManager);
         } catch (Exception e) {
             e.printStackTrace();
