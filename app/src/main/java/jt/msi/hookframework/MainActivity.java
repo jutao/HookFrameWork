@@ -10,6 +10,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getSharedPreferences("name",MODE_PRIVATE).edit().putBoolean("login",false).apply();
         setContentView(R.layout.activity_main);
         findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -17,5 +18,10 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this,SecondActivity.class));
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 }
