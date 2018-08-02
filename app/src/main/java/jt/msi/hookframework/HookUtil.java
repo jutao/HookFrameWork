@@ -1,6 +1,5 @@
 package jt.msi.hookframework;
 
-import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -8,7 +7,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.View;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
@@ -69,7 +67,7 @@ public class HookUtil {
             mInstance.setAccessible(true);
             Object iActivityManager = mInstance.get(defaultValue);
             Class<?> activityManagerIntercept = Class.forName("android.app.IActivityManager");
-            StartActivty startActivtyMethod = new StartActivty(iActivityManager);
+            StartActivity startActivtyMethod = new StartActivity(iActivityManager);
 
             //第二参数  是即将返回的对象 需要实现那些接口
             Object oldIactivityManager = Proxy.newProxyInstance(startActivtyMethod.getClass().getClassLoader(), new Class[]{activityManagerIntercept}, startActivtyMethod);
@@ -80,10 +78,10 @@ public class HookUtil {
         }
     }
 
-    class StartActivty implements InvocationHandler {
+    class StartActivity implements InvocationHandler {
         private Object iActivityManagerObject;
 
-        public StartActivty(Object iActivityManagerObject) {
+        public StartActivity(Object iActivityManagerObject) {
             this.iActivityManagerObject = iActivityManagerObject;
         }
 
@@ -101,9 +99,11 @@ public class HookUtil {
                     }
                 }
                 Intent newIntent = new Intent();
-                ComponentName componentName = new ComponentName(context, ProxyActivity.class);
+                ComponentName componentName = new ComponentName(context, LoginActivity.class);
                 newIntent.setComponent(componentName);
                 newIntent.putExtra("oldIntent", intent);
+                newIntent.putExtra("extraIntent", intent.getComponent()
+                        .getClassName());
                 args[index] = newIntent;
             }
             return method.invoke(iActivityManagerObject, args);
@@ -121,13 +121,13 @@ public class HookUtil {
         public boolean handleMessage(Message msg) {
             //LAUNCH_ACTIVITY ==100 即将要加载一个activity了
             if (msg.what == 100) {
-                handleLuachActivity(msg);
+                handleLaunchActivity(msg);
             }
             mH.handleMessage(msg);
             return true;
         }
 
-        private void handleLuachActivity(Message msg) {
+        private void handleLaunchActivity(Message msg) {
             //还原
             Object obj = msg.obj;
             try {
@@ -136,7 +136,7 @@ public class HookUtil {
                 Intent realyIntent = (Intent) intentField.get(obj);
                 Intent oldIntent = realyIntent.getParcelableExtra("oldIntent");
                 if(oldIntent!=null){
-                    if(context.getSharedPreferences("name",MODE_PRIVATE).getBoolean("login",false)){
+                    if(context.getSharedPreferences("jutao",MODE_PRIVATE).getBoolean("login",false)|| isNotNeedLogin(oldIntent)){
                         realyIntent.setComponent(oldIntent.getComponent());
                     }
 
@@ -145,5 +145,9 @@ public class HookUtil {
                 e.printStackTrace();
             }
         }
+    }
+
+    private boolean isNotNeedLogin(Intent oldIntent) {
+        return  OneActivity.class.getName().equals(oldIntent.getComponent().getClassName());
     }
 }

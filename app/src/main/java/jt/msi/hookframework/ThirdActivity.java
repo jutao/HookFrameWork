@@ -7,10 +7,11 @@ import android.support.annotation.Nullable;
 /**
  * Created by MSI on 2018/7/12.
  */
-public class SecondActivity extends Activity {
+
+public class ThirdActivity extends Activity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_second);
+        setContentView(R.layout.activity_thrid);
     }
 }
